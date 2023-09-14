@@ -7,40 +7,46 @@ export const GET = async () => {
   readDB();
   return NextResponse.json({
     ok: true,
-    //rooms:
-    //totalRooms:
+    rooms: DB.rooms,
+    totalRooms: DB.rooms.length,
   });
 };
 
 export const POST = async (request) => {
   const payload = checkToken();
-
-  // return NextResponse.json(
-  //   {
-  //     ok: false,
-  //     message: "Invalid token",
-  //   },
-  //   { status: 401 }
-  // );
+  if (payload === null)
+    return NextResponse.json(
+      {
+        ok: false,
+        message: "Invalid token",
+      },
+      { status: 401 }
+    );
 
   readDB();
-
-  // return NextResponse.json(
-  //   {
-  //     ok: false,
-  //     message: `Room ${"replace this with room name"} already exists`,
-  //   },
-  //   { status: 400 }
-  // );
+  const body = await request.json();
+  const { roomName } = body;
+  for (const room of DB.rooms)
+    if (room.roomName === roomName)
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Room ${roomName} already exists`,
+        },
+        { status: 400 }
+      );
 
   const roomId = nanoid();
-
+  DB.rooms.push({
+    roomId: roomId,
+    roomName: roomName,
+  });
   //call writeDB after modifying Database
   writeDB();
 
   return NextResponse.json({
     ok: true,
-    //roomId,
-    message: `Room ${"replace this with room name"} has been created`,
+    roomId,
+    message: `Room ${roomName} has been created`,
   });
 };
